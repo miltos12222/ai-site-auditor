@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, TrendingUp } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [auditResult, setAuditResult] = useState<any>(null);
+  const [outreachEmail, setOutreachEmail] = useState("");
 
   const handleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,6 +17,7 @@ export default function Home() {
 
     setLoading(true);
     setAuditResult(null);
+    setOutreachEmail("");
     toast("Σάρωση σε εξέλιξη...", { description: "Αναλύουμε ταχύτητα, SEO, ασφάλεια και δομή του site." });
 
     try {
@@ -40,6 +42,18 @@ export default function Home() {
     }
   };
 
+  const generateEmail = () => {
+    if (!auditResult) return;
+    const emailTemplate = `Γεια σας,\n\nΈτρεξα πρόσφατα μια τεχνική ανάλυση (audit) στην ιστοσελίδα σας (${auditResult.url}) μέσω ενός αυτοματοποιημένου εργαλείου που έχω αναπτύξει.\n\nΠαρατήρησα ορισμένα σημεία που επηρεάζουν την εμφάνισή σας στη Google και την εμπειρία των πελατών σας:\n${auditResult.aiInsights.map((i: string) => `- ${i}`).join("\n")}\n\nΣας επισυνάπτομαι το πλήρες report. Θα χαρώ πολύ να τα πούμε σύντομα για να σας δείξω πώς μπορούν να διορθωθούν άμεσα.\n\nΜε εκτίμηση,\nMiltos Papageorgiou\nWeb & Cloud Developer`;
+    setOutreachEmail(emailTemplate);
+    toast.success("Το Outreach Email δημιουργήθηκε!");
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(outreachEmail);
+    toast.success("Το email αντιγράφηκε στο πρόχειρο!");
+  };
+
   const handleDownloadPDF = () => {
     toast.success("Δημιουργία PDF Report...");
     window.print();
@@ -49,7 +63,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#0b0c10] text-[#e5e7eb] selection:bg-cyan-500/30 selection:text-white p-4 sm:p-8 font-sans">
       <Toaster position="top-center" richColors />
 
-      <main className="max-w-4xl mx-auto space-y-12 pt-12">
+      <main className="max-w-4xl mx-auto space-y-12 pt-12 pb-20">
         
         {/* Header Hero */}
         <div className="text-center space-y-4">
@@ -57,11 +71,11 @@ export default function Home() {
             <Sparkles className="w-4 h-4 animate-pulse" /> AI Site Audit & Outreach Engine 2030
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
-            Αναλύστε Οποιοδήποτε Site <br />
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">Και Βρείτε Αδυναμίες & Πελάτες</span>
+            Βαθιά Τεχνική Ανάλυση Site <br />
+            <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">& Automated Sales Generator</span>
           </h1>
           <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto">
-            Βάλτε το URL οποιασδήποτε επιχείρησης. Το εργαλείο σκανάρει το site, εντοπίζει τεχνικά λάθη και δημιουργεί έξυπνες προτάσεις σε απλά ελληνικά και επαγγελματικό PDF report.
+            Σκανάρει ταχύτητα, SEO, ασφάλεια και mobile-friendliness, βγάζει scores ανά κατηγορία και παράγει έτοιμα emails προσέγγισης πελατών.
           </p>
         </div>
 
@@ -91,11 +105,11 @@ export default function Home() {
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Σάρωση...</span>
+                  <span>Πλήρης Σάρωση...</span>
                 </>
               ) : (
                 <>
-                  <span>Εκκίνηση Audit</span>
+                  <span>Εκκίνηση Deep Audit</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -112,7 +126,7 @@ export default function Home() {
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/10">
               <div>
-                <span className="text-xs font-mono text-cyan-400 uppercase font-bold">Αποτελέσματα Ανάλυσης</span>
+                <span className="text-xs font-mono text-cyan-400 uppercase font-bold">Αναφορά Τεχνικού Ελέγχου</span>
                 <h3 className="text-xl font-bold text-white">{auditResult.url}</h3>
               </div>
               <div className="flex items-center gap-3 bg-black/60 border border-white/10 px-4 py-2 rounded-2xl">
@@ -163,7 +177,31 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="pt-4 flex justify-end">
+            {/* Outreach Email Section */}
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-cyan-400 uppercase font-mono tracking-wider flex items-center gap-2">
+                  <Mail className="w-4 h-4" /> Cold Outreach Email Generator
+                </h4>
+                <button
+                  onClick={generateEmail}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all cursor-pointer shadow-md"
+                >
+                  Δημιουργία Email Πώλησης
+                </button>
+              </div>
+
+              {outreachEmail && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-black/60 border border-purple-500/30 space-y-3 relative font-mono text-xs text-zinc-300">
+                  <button onClick={copyToClipboard} className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1.5 cursor-pointer">
+                    <Copy className="w-3.5 h-3.5" /> Αντιγραφή
+                  </button>
+                  <pre className="whitespace-pre-wrap font-sans leading-relaxed">{outreachEmail}</pre>
+                </motion.div>
+              )}
+            </div>
+
+            <div className="pt-4 flex justify-end gap-3">
               <button
                 onClick={handleDownloadPDF}
                 className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/20"
