@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -11,6 +13,9 @@ export default function Home() {
   const [auditResult, setAuditResult] = useState<any>(null);
   const [outreachEmail, setOutreachEmail] = useState("");
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const handleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,38 +60,44 @@ export default function Home() {
     toast.success("Το email αντιγράφηκε στο πρόχειρο!");
   };
 
-  const handleDownloadPDF = () => {
-    toast.success("Προετοιμασία εκτύπωσης PDF...");
-    window.print();
+  // Αυτόματο Download PDF μέσω html2canvas και jsPDF (Χωρίς print dialog)
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    setDownloadingPdf(true);
+    toast("Δημιουργία αρχείου PDF...", { description: "Παρακαλώ περιμένετε μερικά δευτερόλεπτα." });
+
+    try {
+      const element = reportRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0b0c10"
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`site-audit-report-${Date.now()}.pdf`);
+      toast.success("Το PDF κατέβηκε με επιτυχία!");
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast.error("Αποτυχία δημιουργίας PDF.");
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#0b0c10] text-[#e5e7eb] selection:bg-cyan-500/30 selection:text-white p-4 sm:p-8 font-sans">
       <Toaster position="top-center" richColors />
 
-      {/* CSS Print Styles για καθαρό PDF χωρίς περιττά στοιχεία */}
-      <style jsx global>{`
-        @media print {
-          body {
-            background: white !important;
-            color: black !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .print-container {
-            border: none !important;
-            box-shadow: none !important;
-            background: white !important;
-            color: black !important;
-          }
-        }
-      `}</style>
-
       <main className="max-w-4xl mx-auto space-y-12 pt-12 pb-20">
         
-        {/* Header Hero (Κρύβεται κατά την εκτύπωση PDF) */}
-        <div className="text-center space-y-4 no-print">
+        {/* Header Hero */}
+        <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold">
             <Sparkles className="w-4 h-4 animate-pulse" /> AI Site Audit & Outreach Engine 2030
           </div>
@@ -99,11 +110,11 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Audit Form Box (Κρύβεται στο PDF) */}
+        {/* Audit Form Box */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/15 shadow-2xl backdrop-blur-xl no-print"
+          className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/15 shadow-2xl backdrop-blur-xl"
         >
           <form onSubmit={handleAudit} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -137,12 +148,13 @@ export default function Home() {
           </form>
         </motion.div>
 
-        {/* Results Section */}
+        {/* Results Section (Ref για το αυτόματο PDF download) */}
         {auditResult && (
           <motion.div 
+            ref={reportRef}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-cyan-500/30 space-y-6 shadow-2xl print-container"
+            className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-cyan-500/30 space-y-6 shadow-2xl"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/10">
               <div>
@@ -221,8 +233,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Outreach Email Section (Κρύβεται στο PDF) */}
-            <div className="pt-4 border-t border-white/10 space-y-3 no-print">
+            {/* Outreach Email Section */}
+            <div className="pt-4 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-cyan-400 uppercase font-mono tracking-wider flex items-center gap-2">
                   <Mail className="w-4 h-4" /> Cold Outreach Email Generator
@@ -245,12 +257,23 @@ export default function Home() {
               )}
             </div>
 
-            <div className="pt-4 flex justify-end gap-3 no-print">
+            <div className="pt-4 flex justify-end gap-3">
               <button
                 onClick={handleDownloadPDF}
-                className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/20"
+                disabled={downloadingPdf}
+                className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/20"
               >
-                <Download className="w-4 h-4" /> <span>Λήψη Professional PDF Report</span>
+                {downloadingPdf ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Δημιουργία PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Αυτόματο Download PDF Report</span>
+                  </>
+                )}
               </button>
             </div>
           </motion.div>
