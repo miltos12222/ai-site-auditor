@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown, Cpu, DollarSign } from "lucide-react";
+import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown, DollarSign } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import jsPDF from "jspdf";
 
@@ -57,7 +57,6 @@ export default function Home() {
     toast.success("Το email αντιγράφηκε στο πρόχειρο!");
   };
 
-  // Επαγγελματική και καθαρή παραγωγή PDF με jsPDF (Χωρίς errors)
   const handleDownloadPDF = () => {
     if (!auditResult) return;
     setDownloadingPdf(true);
@@ -66,11 +65,9 @@ export default function Home() {
     try {
       const doc = new jsPDF();
       
-      // Background
       doc.setFillColor(11, 12, 16);
       doc.rect(0, 0, 210, 297, "F");
 
-      // Header
       doc.setTextColor(6, 182, 212);
       doc.setFontSize(18);
       doc.text("AI Site Audit & Enterprise Report", 20, 20);
@@ -78,21 +75,19 @@ export default function Home() {
       doc.setTextColor(229, 231, 235);
       doc.setFontSize(11);
       doc.text(`Target URL: ${auditResult.url}`, 20, 30);
-      doc.text(`Συνολικό Score: ${auditResult.score}/100`, 20, 38);
-      doc.text(`Εκτιμώμενο Κόστος Αναβάθμισης: ${auditResult.totalEstimatedQuote}`, 20, 46);
+      doc.text(`Total Score: ${auditResult.score}/100`, 20, 38);
+      doc.text(`Estimated Quote: ${auditResult.totalEstimatedQuote}`, 20, 46);
 
-      // Metrics
       doc.setTextColor(6, 182, 212);
-      doc.text("--- Βασικά Τεχνικά Metrics ---", 20, 58);
+      doc.text("--- Technical Metrics ---", 20, 58);
       doc.setTextColor(229, 231, 235);
-      doc.text(`- Χρόνος Φόρτωσης Server: ${auditResult.loadTimeMs} ms`, 20, 66);
-      doc.text(`- Μέγεθος Σελίδας HTML: ${auditResult.pageSizeKB} KB`, 20, 74);
-      doc.text(`- SSL / HTTPS Security: ${auditResult.metrics.hasHttps ? 'Ενεργό (Ναι)' : 'Μη Ασφαλές (Όχι)'}`, 20, 82);
-      doc.text(`- Mobile Viewport Support: ${auditResult.metrics.hasViewport ? 'Ναι' : 'Όχι'}`, 20, 90);
+      doc.text(`- Server Response Time: ${auditResult.loadTimeMs} ms`, 20, 66);
+      doc.text(`- HTML Page Size: ${auditResult.pageSizeKB} KB`, 20, 74);
+      doc.text(`- SSL / HTTPS Security: ${auditResult.metrics.hasHttps ? 'Active (Yes)' : 'Insecure (No)'}`, 20, 82);
+      doc.text(`- Mobile Viewport Support: ${auditResult.metrics.hasViewport ? 'Yes' : 'No'}`, 20, 90);
 
-      // AI Findings
       doc.setTextColor(6, 182, 212);
-      doc.text("--- AI Findings & Actionable Fixes ---", 20, 104);
+      doc.text("--- AI Audit Findings ---", 20, 104);
       
       let y = 112;
       auditResult.aiInsights.forEach((insight: any, idx: number) => {
@@ -104,13 +99,12 @@ export default function Home() {
         }
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
-        doc.text(`${idx + 1}. ${insight.title}`, 20, y);
+        const cleanTitle = insight.title.replace(/[\u{1F000}-\u{1F6FF}|✅|🚨|⚠️|🔍|⚡]/gu, "").trim();
+        doc.text(`${idx + 1}. ${cleanTitle}`, 20, y);
         
         doc.setTextColor(180, 180, 180);
-        doc.text(`   Ανάλυση: ${insight.details}`, 20, y + 6);
-        doc.text(`   Διόρθωση: ${insight.fix}`, 20, y + 12);
-        doc.text(`   Κόστος/Impact: ${insight.costToFix} | ${insight.impact}`, 20, y + 18);
-        y += 26;
+        doc.text(`   Details: ${insight.details.substring(0, 85)}...`, 20, y + 6);
+        y += 16;
       });
 
       doc.save(`site-audit-report-${Date.now()}.pdf`);
@@ -129,7 +123,6 @@ export default function Home() {
 
       <main className="max-w-4xl mx-auto space-y-12 pt-12 pb-20">
         
-        {/* Header Hero */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold">
             <Sparkles className="w-4 h-4 animate-pulse" /> AI Site Audit & Outreach Engine 2030
@@ -143,7 +136,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Audit Form Box */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,7 +173,6 @@ export default function Home() {
           </form>
         </motion.div>
 
-        {/* Results Section */}
         {auditResult && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -201,7 +192,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Estimated Quote Card */}
             <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 to-purple-950/40 border border-cyan-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-400">
@@ -217,7 +207,6 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Metrics Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-1">
                 <span className="text-[10px] text-zinc-500 font-mono">Χρόνος Φόρτωσης</span>
@@ -241,7 +230,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* AI Insights & Detailed Expandable Dropdowns */}
             <div className="space-y-3 pt-2">
               <h4 className="text-sm font-bold text-zinc-300 uppercase font-mono tracking-wider">💡 AI Deep Findings & Business Impact (Κάντε κλικ για λεπτομέρειες)</h4>
               <div className="space-y-2">
@@ -285,7 +273,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Outreach Email Section */}
             <div className="pt-4 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-cyan-400 uppercase font-mono tracking-wider flex items-center gap-2">
