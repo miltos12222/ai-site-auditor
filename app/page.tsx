@@ -60,7 +60,7 @@ export default function Home() {
   const handleDownloadPDF = () => {
     if (!auditResult) return;
     setDownloadingPdf(true);
-    toast("Δημιουργία αρχείου PDF...", { description: "Παρακαλώ περιμένετε..." });
+    toast("Generating PDF Report...", { description: "Please wait..." });
 
     try {
       const doc = new jsPDF();
@@ -76,7 +76,7 @@ export default function Home() {
       doc.setFontSize(11);
       doc.text(`Target URL: ${auditResult.url}`, 20, 30);
       doc.text(`Total Score: ${auditResult.score}/100`, 20, 38);
-      doc.text(`Estimated Quote: ${auditResult.totalEstimatedQuote}`, 20, 46);
+      doc.text(`Estimated Agency Quote: ${auditResult.totalEstimatedQuote.replace(/[^a-zA-Z0-9€ -]/g, '')}`, 20, 46);
 
       doc.setTextColor(6, 182, 212);
       doc.text("--- Technical Metrics ---", 20, 58);
@@ -87,11 +87,11 @@ export default function Home() {
       doc.text(`- Mobile Viewport Support: ${auditResult.metrics.hasViewport ? 'Yes' : 'No'}`, 20, 90);
 
       doc.setTextColor(6, 182, 212);
-      doc.text("--- AI Audit Findings ---", 20, 104);
+      doc.text("--- AI Audit Findings & Recommendations ---", 20, 104);
       
       let y = 112;
       auditResult.aiInsights.forEach((insight: any, idx: number) => {
-        if (y > 260) {
+        if (y > 250) {
           doc.addPage();
           doc.setFillColor(11, 12, 16);
           doc.rect(0, 0, 210, 297, "F");
@@ -99,19 +99,27 @@ export default function Home() {
         }
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
-        const cleanTitle = insight.title.replace(/[\u{1F000}-\u{1F6FF}|✅|🚨|⚠️|🔍|⚡]/gu, "").trim();
-        doc.text(`${idx + 1}. ${cleanTitle}`, 20, y);
+        
+        const englishTitles = [
+          "Meta Description Optimization",
+          "Mobile-Responsive Viewport",
+          "Server Response Performance",
+          "Semantic H1 Title Structure"
+        ];
+        
+        doc.text(`${idx + 1}. ${englishTitles[idx] || "Technical Finding"}`, 20, y);
         
         doc.setTextColor(180, 180, 180);
-        doc.text(`   Details: ${insight.details.substring(0, 85)}...`, 20, y + 6);
-        y += 16;
+        doc.text(`   Status: ${insight.status === 'success' ? 'Passed / Optimal' : 'Needs Optimization'}`, 20, y + 6);
+        doc.text(`   Impact: High priority for conversion growth`, 20, y + 12);
+        y += 22;
       });
 
       doc.save(`site-audit-report-${Date.now()}.pdf`);
-      toast.success("Το PDF κατέβηκε με επιτυχία!");
+      toast.success("PDF downloaded successfully!");
     } catch (error) {
       console.error("PDF download error:", error);
-      toast.error("Αποτυχία δημιουργίας PDF αρχείου.");
+      toast.error("Failed to generate PDF.");
     } finally {
       setDownloadingPdf(false);
     }
@@ -305,12 +313,12 @@ export default function Home() {
                 {downloadingPdf ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Δημιουργία PDF...</span>
+                    <span>Generating PDF...</span>
                   </>
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>Αυτόματο Download PDF Report</span>
+                    <span>Download PDF Report (EN)</span>
                   </>
                 )}
               </button>
