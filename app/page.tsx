@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import jsPDF from "jspdf";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -58,25 +59,49 @@ export default function Home() {
     toast.success("Το email αντιγράφηκε στο πρόχειρο!");
   };
 
-  // Διορθωμένο auto download PDF χωρίς TypeScript errors
-  const handleDownloadPDF = async () => {
-    if (!reportRef.current) return;
+  // Σταθερή και αξιόπιστη δημιουργία PDF με jsPDF
+  const handleDownloadPDF = () => {
+    if (!auditResult) return;
     setDownloadingPdf(true);
-    toast("Δημιουργία αρχείου PDF...", { description: "Παρακαλώ περιμένετε μερικά δευτερόλεπτα." });
+    toast("Δημιουργία αρχείου PDF...", { description: "Παρακαλώ περιμένετε..." });
 
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
+      const doc = new jsPDF();
+      
+      // Χρώματα και σχεδίαση PDF
+      doc.setFillColor(11, 12, 16);
+      doc.rect(0, 0, 210, 297, "F");
 
-      const element = reportRef.current;
-      const opt: any = {
-        margin:       10,
-        filename:     `site-audit-report-${Date.now()}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0b0c10' },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+      doc.setTextColor(6, 182, 212);
+      doc.setFontSize(20);
+      doc.text("AI Site Audit & Outreach Report", 20, 20);
 
-      await html2pdf().from(element).set(opt).save();
+      doc.setTextColor(229, 231, 235);
+      doc.setFontSize(12);
+      doc.text(`Target URL: ${auditResult.url}`, 20, 32);
+      doc.text(`Συνολικό Score: ${auditResult.score}/100`, 20, 40);
+
+      doc.text("--- Τεχνικά Metrics ---", 20, 52);
+      doc.text(`Χρόνος Φόρτωσης: ${auditResult.loadTimeMs} ms`, 20, 60);
+      doc.text(`Μέγεθος Σελίδας: ${auditResult.pageSizeKB} KB`, 20, 68);
+      doc.text(`SSL / HTTPS: ${auditResult.metrics.hasHttps ? 'Ναι' : 'Όχι'}`, 20, 76);
+      doc.text(`Mobile Viewport: ${auditResult.metrics.hasViewport ? 'Ενεργό' : 'Ελλιπές'}`, 20, 84);
+
+      doc.text("--- AI Findings ---", 20, 98);
+      let y = 106;
+      auditResult.aiInsights.forEach((insight: any, idx: number) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setTextColor(6, 182, 212);
+        doc.text(`${idx + 1}. ${insight.title}`, 20, y);
+        doc.setTextColor(229, 231, 235);
+        doc.text(`   Διόρθωση: ${insight.fix}`, 20, y + 6);
+        y += 16;
+      });
+
+      doc.save(`site-audit-report-${Date.now()}.pdf`);
       toast.success("Το PDF κατέβηκε με επιτυχία!");
     } catch (error) {
       console.error("PDF download error:", error);
