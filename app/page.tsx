@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, TrendingUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 export default function Home() {
@@ -10,6 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [auditResult, setAuditResult] = useState<any>(null);
   const [outreachEmail, setOutreachEmail] = useState("");
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +45,7 @@ export default function Home() {
 
   const generateEmail = () => {
     if (!auditResult) return;
-    const emailTemplate = `Γεια σας,\n\nΈτρεξα πρόσφατα μια τεχνική ανάλυση (audit) στην ιστοσελίδα σας (${auditResult.url}) μέσω ενός αυτοματοποιημένου εργαλείου που έχω αναπτύξει.\n\nΠαρατήρησα ορισμένα σημεία που επηρεάζουν την εμφάνισή σας στη Google και την εμπειρία των πελατών σας:\n${auditResult.aiInsights.map((i: string) => `- ${i}`).join("\n")}\n\nΣας επισυνάπτομαι το πλήρες report. Θα χαρώ πολύ να τα πούμε σύντομα για να σας δείξω πώς μπορούν να διορθωθούν άμεσα.\n\nΜε εκτίμηση,\nMiltos Papageorgiou\nWeb & Cloud Developer`;
+    const emailTemplate = `Γεια σας,\n\nΈτρεξα πρόσφατα μια τεχνική ανάλυση (audit) στην ιστοσελίδα σας (${auditResult.url}) μέσω ενός αυτοματοποιημένου εργαλείου που έχω αναπτύξει.\n\nΠαρατήρησα ορισμένα σημεία που επηρεάζουν την εμφάνισή σας στη Google και την εμπειρία των πελατών σας:\n${auditResult.aiInsights.map((i: any) => `- ${i.title}`).join("\n")}\n\nΣας επισυνάπτω το πλήρες report. Θα χαρώ πολύ να τα πούμε σύντομα για να σας δείξω πώς μπορούν να διορθωθούν άμεσα.\n\nΜε εκτίμηση,\nMiltos Papageorgiou\nWeb & Cloud Developer`;
     setOutreachEmail(emailTemplate);
     toast.success("Το Outreach Email δημιουργήθηκε!");
   };
@@ -55,7 +56,7 @@ export default function Home() {
   };
 
   const handleDownloadPDF = () => {
-    toast.success("Δημιουργία PDF Report...");
+    toast.success("Προετοιμασία εκτύπωσης PDF...");
     window.print();
   };
 
@@ -63,10 +64,29 @@ export default function Home() {
     <div className="min-h-screen bg-[#0b0c10] text-[#e5e7eb] selection:bg-cyan-500/30 selection:text-white p-4 sm:p-8 font-sans">
       <Toaster position="top-center" richColors />
 
+      {/* CSS Print Styles για καθαρό PDF χωρίς περιττά στοιχεία */}
+      <style jsx global>{`
+        @media print {
+          body {
+            background: white !important;
+            color: black !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .print-container {
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
+            color: black !important;
+          }
+        }
+      `}</style>
+
       <main className="max-w-4xl mx-auto space-y-12 pt-12 pb-20">
         
-        {/* Header Hero */}
-        <div className="text-center space-y-4">
+        {/* Header Hero (Κρύβεται κατά την εκτύπωση PDF) */}
+        <div className="text-center space-y-4 no-print">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold">
             <Sparkles className="w-4 h-4 animate-pulse" /> AI Site Audit & Outreach Engine 2030
           </div>
@@ -79,11 +99,11 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Audit Form Box */}
+        {/* Audit Form Box (Κρύβεται στο PDF) */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/15 shadow-2xl backdrop-blur-xl"
+          className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/15 shadow-2xl backdrop-blur-xl no-print"
         >
           <form onSubmit={handleAudit} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -122,7 +142,7 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-cyan-500/30 space-y-6 shadow-2xl"
+            className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-cyan-500/30 space-y-6 shadow-2xl print-container"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/10">
               <div>
@@ -161,24 +181,48 @@ export default function Home() {
               </div>
             </div>
 
-            {/* AI Insights & Recommendations */}
+            {/* AI Insights & Expandable Dropdowns */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-sm font-bold text-zinc-300 uppercase font-mono tracking-wider">💡 AI Findings & Business Impact</h4>
+              <h4 className="text-sm font-bold text-zinc-300 uppercase font-mono tracking-wider">💡 AI Findings & Business Impact (Click for details)</h4>
               <div className="space-y-2">
-                {auditResult.aiInsights.map((insight: string, idx: number) => {
-                  const isSuccess = insight.includes("✅") || insight.includes("⚡");
+                {auditResult.aiInsights.map((insight: any, idx: number) => {
+                  const isSuccess = insight.status === "success";
+                  const isOpen = expandedIndex === idx;
+
                   return (
-                    <div key={idx} className={`p-4 rounded-2xl border flex items-start gap-3 text-xs sm:text-sm ${isSuccess ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-200' : 'bg-red-950/20 border-red-500/20 text-red-200'}`}>
-                      {isSuccess ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />}
-                      <span>{insight}</span>
+                    <div key={idx} className={`rounded-2xl border transition-all overflow-hidden ${isSuccess ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-200' : 'bg-red-950/20 border-red-500/20 text-red-200'}`}>
+                      <button
+                        onClick={() => setExpandedIndex(isOpen ? null : idx)}
+                        className="w-full p-4 flex items-center justify-between text-left cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3 text-xs sm:text-sm font-medium">
+                          {isSuccess ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> : <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />}
+                          <span>{insight.title}</span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="px-4 pb-4 pt-1 text-xs text-zinc-300 border-t border-white/10 space-y-1 font-mono"
+                          >
+                            <p><strong>Ανάλυση AI:</strong> {insight.details}</p>
+                            <p className="text-cyan-400"><strong>Προτεινόμενη Διόρθωση:</strong> {insight.fix}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Outreach Email Section */}
-            <div className="pt-4 border-t border-white/10 space-y-3">
+            {/* Outreach Email Section (Κρύβεται στο PDF) */}
+            <div className="pt-4 border-t border-white/10 space-y-3 no-print">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-cyan-400 uppercase font-mono tracking-wider flex items-center gap-2">
                   <Mail className="w-4 h-4" /> Cold Outreach Email Generator
@@ -201,7 +245,7 @@ export default function Home() {
               )}
             </div>
 
-            <div className="pt-4 flex justify-end gap-3">
+            <div className="pt-4 flex justify-end gap-3 no-print">
               <button
                 onClick={handleDownloadPDF}
                 className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/20"

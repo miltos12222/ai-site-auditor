@@ -37,10 +37,30 @@ export async function POST(req: Request) {
     if (hasH1) score += 20;
 
     const insights = [
-      !hasDescription ? "⚠️ Το site σας δεν διαθέτει Meta Description, με αποτέλεσμα η Google να μην το προβάλλει σωστά στις αναζητήσεις, χάνοντας πελάτες." : "✅ Το SEO description είναι ενεργό.",
-      !hasViewport ? "🚨 Λείπει η ετικέτα Mobile Viewport, κάνοντας το site δύσχρηστο σε κινητά τηλέφωνα." : "✅ Το site υποστηρίζει mobile viewport.",
-      loadTime > 2000 ? `⚡ Ο χρόνος απόκρισης είναι υψηλός (${loadTime}ms), γεγονός που κουράζει τους επισκέπτες.` : "⚡ Η ταχύτητα απόκρισης είναι εξαιρετική.",
-      !hasH1 ? "🔍 Δεν ανιχνεύθηκε βασικός τίτλος H1 στη σελίδα για τη σωστή ιεραρχία SEO." : "✅ Η δομή επικεφαλίδων (H1) είναι σωστή."
+      {
+        title: hasDescription ? "✅ Το SEO Description είναι ενεργό." : "⚠️ Λείπει το Meta Description.",
+        details: hasDescription ? "Η σελίδα διαθέτει περιγραφή για τις μηχανές αναζήτησης." : "Χωρίς description, η Google αυτοσχεδιάζει κείμενο στα αποτελέσματα αναζήτησης, μειώνοντας τα κλικ.",
+        fix: hasDescription ? "Δεν απαιτείται ενέργεια." : "Προσθέστε ετικέτα <meta name='description' content='...'> στο <head>.",
+        status: hasDescription ? "success" : "warning"
+      },
+      {
+        title: hasViewport ? "✅ Το site υποστηρίζει Mobile Viewport." : "🚨 Ελλιπές Mobile Viewport.",
+        details: hasViewport ? "Η σελίδα προσαρμόζεται σωστά σε οθόνες κινητών." : "Χωρίς viewport tag, οι χρήστες κινητών βλέπουν μικροσκοπική την ιστοσελίδα και φεύγουν αμέσως.",
+        fix: hasViewport ? "Συγχαρητήρια, είναι εντάξει." : "Προσθέστε <meta name='viewport' content='width=device-width, initial-scale=1'>.",
+        status: hasViewport ? "success" : "warning"
+      },
+      {
+        title: loadTime < 2000 ? "⚡ Η ταχύτητα απόκρισης είναι εξαιρετική." : "⚠️ Ο χρόνος φόρτωσης είναι υψηλός.",
+        details: `Ο server αποκρίθηκε σε ${loadTime}ms.`,
+        fix: loadTime < 2000 ? "Διατηρήστε τη φιλοξενία." : "Βελτιστοποιήστε τις εικόνες και ενεργοποιήστε Caching / CDN.",
+        status: loadTime < 2000 ? "success" : "warning"
+      },
+      {
+        title: hasH1 ? "✅ Η δομή επικεφαλίδων (H1) είναι σωστή." : "🔍 Δεν βρέθηκε βασικός τίτλος H1.",
+        details: hasH1 ? "Ο τίτλος H1 καθοδηγεί σωστά τη Google για το αντικείμενο της σελίδας." : "Η απουσία H1 μειώνει την κατανόηση του περιεχομένου από τις μηχανές αναζήτησης.",
+        fix: hasH1 ? "Τέλεια." : "Προσθέστε τουλάχιστον μία ετικέτα <h1> στην αρχή της σελίδας.",
+        status: hasH1 ? "success" : "warning"
+      }
     ];
 
     return NextResponse.json({
