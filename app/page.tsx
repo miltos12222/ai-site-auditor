@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown } from "lucide-react";
+import { Sparkles, Globe, ShieldCheck, Zap, ArrowRight, Download, CheckCircle2, AlertTriangle, RefreshCw, Copy, Mail, ChevronDown, Cpu, DollarSign } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import jsPDF from "jspdf";
 
@@ -13,8 +13,6 @@ export default function Home() {
   const [outreachEmail, setOutreachEmail] = useState("");
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-
-  const reportRef = useRef<HTMLDivElement>(null);
 
   const handleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +47,7 @@ export default function Home() {
 
   const generateEmail = () => {
     if (!auditResult) return;
-    const emailTemplate = `Γεια σας,\n\nΈτρεξα πρόσφατα μια τεχνική ανάλυση (audit) στην ιστοσελίδα σας (${auditResult.url}) μέσω ενός αυτοματοποιημένου εργαλείου που έχω αναπτύξει.\n\nΠαρατήρησα ορισμένα σημεία που επηρεάζουν την εμφάνισή σας στη Google και την εμπειρία των πελατών σας:\n${auditResult.aiInsights.map((i: any) => `- ${i.title}`).join("\n")}\n\nΣας επισυνάπτω το πλήρες report. Θα χαρώ πολύ να τα πούμε σύντομα για να σας δείξω πώς μπορούν να διορθωθούν άμεσα.\n\nΜε εκτίμηση,\nMiltos Papageorgiou\nWeb & Cloud Developer`;
+    const emailTemplate = `Γεια σας,\n\nΈτρεξα πρόσφατα μια τεχνική ανάλυση (audit) στην ιστοσελίδα σας (${auditResult.url}) μέσω ενός αυτοματοποιημένου εργαλείου τεχνητής νοημοσύνης.\n\nΠαρατήρησα ορισμένα σημεία που επηρεάζουν την εμφάνισή σας στη Google και την εμπειρία των πελατών σας:\n${auditResult.aiInsights.map((i: any) => `- ${i.title}`).join("\n")}\n\nΕνδεικτικό κόστος αποκατάστασης/αναβάθμισης: ${auditResult.totalEstimatedQuote}.\n\nΣας επισυνάπτω το πλήρες report. Θα χαρώ πολύ να τα πούμε σύντομα για να σας δείξω πώς μπορούν να διορθωθούν άμεσα.\n\nΜε εκτίμηση,\nMiltos Papageorgiou\nWeb & Cloud Developer`;
     setOutreachEmail(emailTemplate);
     toast.success("Το Outreach Email δημιουργήθηκε!");
   };
@@ -59,7 +57,7 @@ export default function Home() {
     toast.success("Το email αντιγράφηκε στο πρόχειρο!");
   };
 
-  // Σταθερή και αξιόπιστη δημιουργία PDF με jsPDF
+  // Επαγγελματική και καθαρή παραγωγή PDF με jsPDF (Χωρίς errors)
   const handleDownloadPDF = () => {
     if (!auditResult) return;
     setDownloadingPdf(true);
@@ -68,37 +66,51 @@ export default function Home() {
     try {
       const doc = new jsPDF();
       
-      // Χρώματα και σχεδίαση PDF
+      // Background
       doc.setFillColor(11, 12, 16);
       doc.rect(0, 0, 210, 297, "F");
 
+      // Header
       doc.setTextColor(6, 182, 212);
-      doc.setFontSize(20);
-      doc.text("AI Site Audit & Outreach Report", 20, 20);
+      doc.setFontSize(18);
+      doc.text("AI Site Audit & Enterprise Report", 20, 20);
 
       doc.setTextColor(229, 231, 235);
-      doc.setFontSize(12);
-      doc.text(`Target URL: ${auditResult.url}`, 20, 32);
-      doc.text(`Συνολικό Score: ${auditResult.score}/100`, 20, 40);
+      doc.setFontSize(11);
+      doc.text(`Target URL: ${auditResult.url}`, 20, 30);
+      doc.text(`Συνολικό Score: ${auditResult.score}/100`, 20, 38);
+      doc.text(`Εκτιμώμενο Κόστος Αναβάθμισης: ${auditResult.totalEstimatedQuote}`, 20, 46);
 
-      doc.text("--- Τεχνικά Metrics ---", 20, 52);
-      doc.text(`Χρόνος Φόρτωσης: ${auditResult.loadTimeMs} ms`, 20, 60);
-      doc.text(`Μέγεθος Σελίδας: ${auditResult.pageSizeKB} KB`, 20, 68);
-      doc.text(`SSL / HTTPS: ${auditResult.metrics.hasHttps ? 'Ναι' : 'Όχι'}`, 20, 76);
-      doc.text(`Mobile Viewport: ${auditResult.metrics.hasViewport ? 'Ενεργό' : 'Ελλιπές'}`, 20, 84);
+      // Metrics
+      doc.setTextColor(6, 182, 212);
+      doc.text("--- Βασικά Τεχνικά Metrics ---", 20, 58);
+      doc.setTextColor(229, 231, 235);
+      doc.text(`- Χρόνος Φόρτωσης Server: ${auditResult.loadTimeMs} ms`, 20, 66);
+      doc.text(`- Μέγεθος Σελίδας HTML: ${auditResult.pageSizeKB} KB`, 20, 74);
+      doc.text(`- SSL / HTTPS Security: ${auditResult.metrics.hasHttps ? 'Ενεργό (Ναι)' : 'Μη Ασφαλές (Όχι)'}`, 20, 82);
+      doc.text(`- Mobile Viewport Support: ${auditResult.metrics.hasViewport ? 'Ναι' : 'Όχι'}`, 20, 90);
 
-      doc.text("--- AI Findings ---", 20, 98);
-      let y = 106;
+      // AI Findings
+      doc.setTextColor(6, 182, 212);
+      doc.text("--- AI Findings & Actionable Fixes ---", 20, 104);
+      
+      let y = 112;
       auditResult.aiInsights.forEach((insight: any, idx: number) => {
-        if (y > 270) {
+        if (y > 260) {
           doc.addPage();
+          doc.setFillColor(11, 12, 16);
+          doc.rect(0, 0, 210, 297, "F");
           y = 20;
         }
-        doc.setTextColor(6, 182, 212);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
         doc.text(`${idx + 1}. ${insight.title}`, 20, y);
-        doc.setTextColor(229, 231, 235);
-        doc.text(`   Διόρθωση: ${insight.fix}`, 20, y + 6);
-        y += 16;
+        
+        doc.setTextColor(180, 180, 180);
+        doc.text(`   Ανάλυση: ${insight.details}`, 20, y + 6);
+        doc.text(`   Διόρθωση: ${insight.fix}`, 20, y + 12);
+        doc.text(`   Κόστος/Impact: ${insight.costToFix} | ${insight.impact}`, 20, y + 18);
+        y += 26;
       });
 
       doc.save(`site-audit-report-${Date.now()}.pdf`);
@@ -127,7 +139,7 @@ export default function Home() {
             <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">& Automated Sales Generator</span>
           </h1>
           <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto">
-            Σκανάρει ταχύτητα, SEO, ασφάλεια και mobile-friendliness, βγάζει scores ανά κατηγορία και παράγει έτοιμα emails προσέγγισης πελατών.
+            Σκανάρει ταχύτητα, SEO, ασφάλεια και mobile-friendliness, υπολογίζει κόστος αναβάθμισης και παράγει έτοιμα emails πώλησης.
           </p>
         </div>
 
@@ -172,7 +184,6 @@ export default function Home() {
         {/* Results Section */}
         {auditResult && (
           <motion.div 
-            ref={reportRef}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-cyan-500/30 space-y-6 shadow-2xl"
@@ -188,6 +199,22 @@ export default function Home() {
                   {auditResult.score}/100
                 </span>
               </div>
+            </div>
+
+            {/* Estimated Quote Card */}
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 to-purple-950/40 border border-cyan-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-400">
+                  <DollarSign className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-mono text-cyan-400 uppercase font-bold">Εκτιμώμενο Κόστος Αποκατάστασης / Agency Quote</span>
+                  <p className="text-base sm:text-lg font-black text-white">{auditResult.totalEstimatedQuote}</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono opacity-70 bg-black/40 px-3 py-1.5 rounded-lg border border-white/10">
+                Market Standard 2030
+              </span>
             </div>
 
             {/* Metrics Grid */}
@@ -214,9 +241,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* AI Insights & Expandable Dropdowns */}
+            {/* AI Insights & Detailed Expandable Dropdowns */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-sm font-bold text-zinc-300 uppercase font-mono tracking-wider">💡 AI Findings & Business Impact (Click for details)</h4>
+              <h4 className="text-sm font-bold text-zinc-300 uppercase font-mono tracking-wider">💡 AI Deep Findings & Business Impact (Κάντε κλικ για λεπτομέρειες)</h4>
               <div className="space-y-2">
                 {auditResult.aiInsights.map((insight: any, idx: number) => {
                   const isSuccess = insight.status === "success";
@@ -241,10 +268,14 @@ export default function Home() {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="px-4 pb-4 pt-1 text-xs text-zinc-300 border-t border-white/10 space-y-1 font-mono"
+                            className="px-4 pb-4 pt-1 text-xs text-zinc-300 border-t border-white/10 space-y-2 font-mono"
                           >
-                            <p><strong>Ανάλυση AI:</strong> {insight.details}</p>
-                            <p className="text-cyan-400"><strong>Προτεινόμενη Διόρθωση:</strong> {insight.fix}</p>
+                            <p><strong>Ανάλυση & Επίπτωση:</strong> {insight.details}</p>
+                            <p className="text-cyan-400"><strong>Τεχνική Διόρθωση:</strong> {insight.fix}</p>
+                            <div className="flex flex-wrap gap-4 pt-1 text-[11px] opacity-80">
+                              <span>📈 <strong>Business Impact:</strong> {insight.impact}</span>
+                              <span>💰 <strong>Εκτιμώμενο Κόστος:</strong> {insight.costToFix}</span>
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
